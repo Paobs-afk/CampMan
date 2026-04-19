@@ -5,11 +5,12 @@ import { FormEvent, useState } from 'react';
 import { ArrowRight, Lock, Mail } from 'lucide-react';
 import AuthShell from '../components/AuthShell';
 import { loginAction } from './actions/auth';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 
 function LoginForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const confirmed = searchParams.get('confirmed');
   const urlError = searchParams.get('error');
 
@@ -23,11 +24,29 @@ function LoginForm() {
 
     try {
       const fd = new FormData(event.currentTarget);
+      const email = fd.get('email');
+      const password = fd.get('password');
+      console.log('[LoginForm] submitting form with email:', email, 'password length:', (password as string)?.length);
       const result = await loginAction(fd);
+      console.log('[LoginForm] result:', result);
+
       if (result?.error) {
+        console.error('[LoginForm] error returned:', result.error);
         setError(result.error);
+        setLoading(false);
+      } else if (result && 'success' in result && result.success) {
+        console.log('[LoginForm] success! navigating to dashboard');
+        // Use window.location for a hard redirect to ensure it works in all environments
+        window.location.href = '/dashboard';
+      } else {
+        console.warn('[LoginForm] unexpected result:', result);
+        // If we get here, assume success and try redirecting anyway
+        console.log('[LoginForm] no error and no explicit success, attempting redirect');
+        window.location.href = '/dashboard';
       }
-    } finally {
+    } catch (err) {
+      console.error('[LoginForm] exception:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
       setLoading(false);
     }
   };

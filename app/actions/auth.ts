@@ -2,9 +2,8 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
-import { redirect } from 'next/navigation';
 
-export type AuthActionResult = { error: string } | null;
+export type AuthActionResult = { error: string } | { success: true } | null;
 
 export async function signUpAction(formData: FormData): Promise<AuthActionResult> {
   const firstName = formData.get('firstName') as string;
@@ -82,8 +81,9 @@ export async function signUpAction(formData: FormData): Promise<AuthActionResult
   });
 
   if (signUpError) {
+    console.error('[signUpAction] signUp error:', signUpError);
     await adminClient.storage.from('camp-man-files').remove([secKey, orgCertKey]);
-    return { error: signUpError.message };
+    return { error: `Signup failed: ${signUpError.message}` };
   }
 
   const user = data.user;
@@ -120,7 +120,10 @@ export async function loginAction(formData: FormData): Promise<AuthActionResult>
   const email = (formData.get('email') as string | null)?.trim() ?? '';
   const password = (formData.get('password') as string | null) ?? '';
 
+  console.log('[loginAction] form data received - email:', email, 'password length:', password.length);
+
   if (!email || !password) {
+    console.error('[loginAction] missing email or password');
     return { error: 'Email and password are required.' };
   }
 
@@ -132,6 +135,7 @@ export async function loginAction(formData: FormData): Promise<AuthActionResult>
   });
 
   if (signInError) {
+    console.error('[loginAction] signIn error:', signInError.message);
     return { error: 'Invalid email or password.' };
   }
   if (!data.user) {
@@ -140,6 +144,7 @@ export async function loginAction(formData: FormData): Promise<AuthActionResult>
   }
 
   const user = data.user;
+  console.log('[loginAction] user signed in:', user.id, user.email);
 
   // Belt-and-suspenders: Supabase also blocks unconfirmed sign-ins at the
   // project level, but we re-check here in case that setting is disabled.
@@ -155,11 +160,19 @@ export async function loginAction(formData: FormData): Promise<AuthActionResult>
     .eq('auth_user_id', user.id)
     .single();
 
-  if (profileError || !profile) {
-    console.error('[loginAction] profile query failed:', profileError?.message);
+  if (profileError) {
+    console.error('[loginAction] profile query error:', profileError);
     await supabase.auth.signOut();
     return { error: 'Account not found. Please contact support.' };
   }
+
+  if (!profile) {
+    console.error('[loginAction] profile not found for user:', user.id);
+    await supabase.auth.signOut();
+    return { error: 'Account not found. Please contact support.' };
+  }
+
+  console.log('[loginAction] profile status:', profile.status);
 
   if (profile.status !== 'approved') {
     await supabase.auth.signOut();
@@ -172,5 +185,6 @@ export async function loginAction(formData: FormData): Promise<AuthActionResult>
     return { error: msg };
   }
 
-  redirect('/dashboard');
+  console.log('[loginAction] login successful, returning success');
+  return { success: true };
 }
