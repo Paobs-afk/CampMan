@@ -130,6 +130,7 @@ export async function loginAction(formData: FormData): Promise<AuthActionResult>
   });
 
   if (signInError) {
+    console.error('[loginAction] signIn error:', signInError.message);
     return { error: 'Invalid email or password.' };
   }
   if (!data.user) {
@@ -138,6 +139,7 @@ export async function loginAction(formData: FormData): Promise<AuthActionResult>
   }
 
   const user = data.user;
+  console.log('[loginAction] user signed in:', user.id, user.email);
 
   // Belt-and-suspenders: Supabase also blocks unconfirmed sign-ins at the
   // project level, but we re-check here in case that setting is disabled.
@@ -153,11 +155,19 @@ export async function loginAction(formData: FormData): Promise<AuthActionResult>
     .eq('auth_user_id', user.id)
     .single();
 
-  if (profileError || !profile) {
-    console.error('[loginAction] profile query failed:', profileError?.message);
+  if (profileError) {
+    console.error('[loginAction] profile query error:', profileError);
     await supabase.auth.signOut();
     return { error: 'Account not found. Please contact support.' };
   }
+
+  if (!profile) {
+    console.error('[loginAction] profile not found for user:', user.id);
+    await supabase.auth.signOut();
+    return { error: 'Account not found. Please contact support.' };
+  }
+
+  console.log('[loginAction] profile status:', profile.status);
 
   if (profile.status !== 'approved') {
     await supabase.auth.signOut();
@@ -170,5 +180,6 @@ export async function loginAction(formData: FormData): Promise<AuthActionResult>
     return { error: msg };
   }
 
+  console.log('[loginAction] login successful, returning success');
   return { success: true };
 }

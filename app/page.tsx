@@ -24,14 +24,22 @@ function LoginForm() {
 
     try {
       const fd = new FormData(event.currentTarget);
+      console.log('[LoginForm] submitting form');
       const result = await loginAction(fd);
+      console.log('[LoginForm] result:', result);
+
       if (result?.error) {
+        console.error('[LoginForm] error returned:', result.error);
         setError(result.error);
       } else if (result && 'success' in result && result.success) {
+        console.log('[LoginForm] success! navigating to dashboard');
         router.push('/dashboard');
+      } else {
+        console.warn('[LoginForm] unexpected result:', result);
+        setError('An unexpected error occurred. Please try again.');
       }
     } catch (err) {
-      console.error('Login error:', err);
+      console.error('[LoginForm] exception:', err);
       setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
