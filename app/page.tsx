@@ -5,11 +5,12 @@ import { FormEvent, useState } from 'react';
 import { ArrowRight, Lock, Mail } from 'lucide-react';
 import AuthShell from '../components/AuthShell';
 import { loginAction } from './actions/auth';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense } from 'react';
 
 function LoginForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const confirmed = searchParams.get('confirmed');
   const urlError = searchParams.get('error');
 
@@ -26,6 +27,8 @@ function LoginForm() {
       const result = await loginAction(fd);
       if (result?.error) {
         setError(result.error);
+      } else if ('success' in result && result.success) {
+        router.push('/dashboard');
       }
     } finally {
       setLoading(false);

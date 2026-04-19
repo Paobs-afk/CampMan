@@ -2,9 +2,8 @@
 
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
-import { redirect } from 'next/navigation';
 
-export type AuthActionResult = { error: string } | null;
+export type AuthActionResult = { error: string } | { success: true } | null;
 
 export async function signUpAction(formData: FormData): Promise<AuthActionResult> {
   const firstName = formData.get('firstName') as string;
@@ -171,5 +170,5 @@ export async function loginAction(formData: FormData): Promise<AuthActionResult>
     return { error: msg };
   }
 
-  redirect('/dashboard');
+  return { success: true };
 }
