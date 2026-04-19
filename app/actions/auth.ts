@@ -118,7 +118,10 @@ export async function loginAction(formData: FormData): Promise<AuthActionResult>
   const email = (formData.get('email') as string | null)?.trim() ?? '';
   const password = (formData.get('password') as string | null) ?? '';
 
+  console.log('[loginAction] form data received - email:', email, 'password length:', password.length);
+
   if (!email || !password) {
+    console.error('[loginAction] missing email or password');
     return { error: 'Email and password are required.' };
   }
 

@@ -24,7 +24,9 @@ function LoginForm() {
 
     try {
       const fd = new FormData(event.currentTarget);
-      console.log('[LoginForm] submitting form');
+      const email = fd.get('email');
+      const password = fd.get('password');
+      console.log('[LoginForm] submitting form with email:', email, 'password length:', (password as string)?.length);
       const result = await loginAction(fd);
       console.log('[LoginForm] result:', result);
 
