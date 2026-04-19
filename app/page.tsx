@@ -27,9 +27,12 @@ function LoginForm() {
       const result = await loginAction(fd);
       if (result?.error) {
         setError(result.error);
-      } else if ('success' in result && result.success) {
+      } else if (result && 'success' in result && result.success) {
         router.push('/dashboard');
       }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
