@@ -34,17 +34,13 @@ function LoginForm() {
         setLoading(false);
       } else if (result && 'success' in result && result.success) {
         console.log('[LoginForm] success! navigating to dashboard');
-        // Use a small delay to ensure cookies are set
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 100);
+        // Use window.location for a hard redirect to ensure it works in all environments
+        window.location.href = '/dashboard';
       } else {
         console.warn('[LoginForm] unexpected result:', result);
         // If we get here, assume success and try redirecting anyway
         console.log('[LoginForm] no error and no explicit success, attempting redirect');
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 100);
+        window.location.href = '/dashboard';
       }
     } catch (err) {
       console.error('[LoginForm] exception:', err);
