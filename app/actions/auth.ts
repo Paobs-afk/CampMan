@@ -81,8 +81,9 @@ export async function signUpAction(formData: FormData): Promise<AuthActionResult
   });
 
   if (signUpError) {
+    console.error('[signUpAction] signUp error:', signUpError);
     await adminClient.storage.from('camp-man-files').remove([secKey, orgCertKey]);
-    return { error: signUpError.message };
+    return { error: `Signup failed: ${signUpError.message}` };
   }
 
   const user = data.user;
