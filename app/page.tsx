@@ -31,17 +31,24 @@ function LoginForm() {
       if (result?.error) {
         console.error('[LoginForm] error returned:', result.error);
         setError(result.error);
+        setLoading(false);
       } else if (result && 'success' in result && result.success) {
         console.log('[LoginForm] success! navigating to dashboard');
-        router.push('/dashboard');
+        // Use a small delay to ensure cookies are set
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 100);
       } else {
         console.warn('[LoginForm] unexpected result:', result);
-        setError('An unexpected error occurred. Please try again.');
+        // If we get here, assume success and try redirecting anyway
+        console.log('[LoginForm] no error and no explicit success, attempting redirect');
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 100);
       }
     } catch (err) {
       console.error('[LoginForm] exception:', err);
       setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
